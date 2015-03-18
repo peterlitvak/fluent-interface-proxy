@@ -1,14 +1,24 @@
 package com.fluentinterface.proxy;
 
+import static com.fluentinterface.utils.ConversionUtils.translateFromPrimitive;
+
+import com.fluentinterface.builder.FluentSetter;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static com.fluentinterface.utils.ConversionUtils.translateFromPrimitive;
 
 /**
  * A dynamic proxy which will build a bean of the target type upon calls to the implemented
@@ -16,8 +26,7 @@ import static com.fluentinterface.utils.ConversionUtils.translateFromPrimitive;
  */
 public class BuilderProxy implements InvocationHandler {
 
-    private static final Pattern BUILDER_METHOD_PROPERTY_PATTERN =
-            Pattern.compile("[a-z]+([A-Z].*)");
+    private static final Pattern BUILDER_METHOD_PROPERTY_PATTERN = Pattern.compile("^[a-z|_]+(.*)");
 
     private Class proxied;
     private Class builtClass;
@@ -26,7 +35,7 @@ public class BuilderProxy implements InvocationHandler {
     private Map<String, Object> propertiesToSet;
 
     public BuilderProxy(Class builderInterface, Class builtClass, BuilderDelegate builderDelegate,
-                        AttributeAccessStrategy attributeAccessStrategy) {
+            AttributeAccessStrategy attributeAccessStrategy) {
 
         this.proxied = builderInterface;
         this.builtClass = builtClass;
@@ -44,7 +53,7 @@ public class BuilderProxy implements InvocationHandler {
             if(!hasProperty(builtClass, propertyBeingSet)) {
                 throw new IllegalStateException(String.format(
                         "Method [%s] on [%s] corresponds to unknown property [%s] on built class " +
-                        "[%s]",
+                                "[%s]",
                         method.getName(), proxied, propertyBeingSet, builtClass)
                 );
             }
@@ -52,8 +61,7 @@ public class BuilderProxy implements InvocationHandler {
             propertiesToSet.put(propertyBeingSet, valueForProperty);
 
             return target;
-        }
-        else if(isBuildMethod(method)) {
+        } else if(isBuildMethod(method)) {
             params = extractVarArgsIfNeeded(params);
             return createInstanceFromProperties(params);
         }
@@ -63,8 +71,8 @@ public class BuilderProxy implements InvocationHandler {
 
     private Object[] extractVarArgsIfNeeded(Object[] params) {
         if(params != null
-           && params.length == 1
-           && params[params.length - 1].getClass().isArray()) {
+                && params.length == 1
+                && params[params.length - 1].getClass().isArray()) {
             return (Object[]) params[params.length - 1];
         }
         return params;
@@ -94,6 +102,7 @@ public class BuilderProxy implements InvocationHandler {
     private Constructor findMatchingConstructor(Object[] params) throws NoSuchMethodException {
         if(params == null || params.length == 0) {
             // use default (empty) constructor
+            //noinspection unchecked
             return builtClass.getDeclaredConstructor();
         }
 
@@ -105,14 +114,12 @@ public class BuilderProxy implements InvocationHandler {
             throw new IllegalArgumentException(String.format(
                     "No constructor found on class [%s] that matches signature (%s)",
                     builtClass, Arrays.toString(paramTypes)));
-        }
-        else if(candidates.size() > 1) {
+        } else if(candidates.size() > 1) {
             throw new IllegalArgumentException(String.format(
                     "Found %s constructors matching signature (%s) on class [%s], which is too " +
-                    "ambiguous to proceed.",
+                            "ambiguous to proceed.",
                     candidates.size(), Arrays.toString(paramTypes), builtClass));
-        }
-        else {
+        } else {
             return candidates.get(0);
         }
     }
@@ -173,9 +180,8 @@ public class BuilderProxy implements InvocationHandler {
             if(valueAsCollection != null) {
                 valueAsCollection = buildBuildersInCollection(valueAsCollection);
                 value = transformCollectionToTargetTypeIfPossible(value, valueAsCollection,
-                                                                  targetPropertyType);
-            }
-            else {
+                        targetPropertyType);
+            } else {
                 value = buildIfBuilderInstance(value);
             }
         }
@@ -184,8 +190,8 @@ public class BuilderProxy implements InvocationHandler {
     }
 
     private Object transformCollectionToTargetTypeIfPossible(Object originalValue,
-                                                             Collection<Object> valueAsCollection,
-                                                             Class targetPropertyType)
+            Collection<Object> valueAsCollection,
+            Class targetPropertyType)
             throws InstantiationException, IllegalAccessException {
 
         if(targetPropertyType.isArray()) {
@@ -247,8 +253,7 @@ public class BuilderProxy implements InvocationHandler {
 
         if(valueClass.isArray()) {
             valueAsCollection = arrayToCollection(value);
-        }
-        else if(isCollection(valueClass)) {
+        } else if(isCollection(valueClass)) {
             valueAsCollection = (Collection) value;
         }
 
@@ -256,7 +261,7 @@ public class BuilderProxy implements InvocationHandler {
     }
 
     private Object collectionToArray(Collection<Object> valueAsCollection,
-                                     Class targetPropertyType) {
+            Class targetPropertyType) {
         Class arrayElementsType = targetPropertyType.getComponentType();
         int arraySize = valueAsCollection.size();
 
@@ -299,11 +304,9 @@ public class BuilderProxy implements InvocationHandler {
         if(clazz.isInterface()) {
             if(SortedSet.class.isAssignableFrom(clazz)) {
                 return new TreeSet<Object>();
-            }
-            else if(Set.class.isAssignableFrom(clazz)) {
+            } else if(Set.class.isAssignableFrom(clazz)) {
                 return new HashSet<Object>();
-            }
-            else if(List.class.isAssignableFrom(clazz)) {
+            } else if(List.class.isAssignableFrom(clazz)) {
                 return new ArrayList<Object>();
             }
 
@@ -319,8 +322,10 @@ public class BuilderProxy implements InvocationHandler {
 
         if(propertyNameMatcher.matches()) {
             String propertyName = propertyNameMatcher.group(1);
-            if(propertyName != null) {
+            if(propertyName != null && !propertyName.isEmpty()) {
                 return uncapitalize(propertyName);
+            } else {
+                return methodName;
             }
         }
 
@@ -337,7 +342,8 @@ public class BuilderProxy implements InvocationHandler {
 
     private boolean isFluentSetter(Method method) {
         return method.getParameterTypes().length == 1
-               && method.getReturnType() == proxied;
+                && (method.getReturnType() == proxied ||
+                method.isAnnotationPresent(FluentSetter.class));
     }
 
     private String uncapitalize(String source) {

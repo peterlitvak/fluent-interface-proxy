@@ -5,7 +5,8 @@ import com.fluentinterface.proxy.AttributeAccessStrategy;
 import java.lang.reflect.Field;
 
 /**
- * Strategy that sets the target bean's attributes directly using the Reflection API (without going through the setters).
+ * Strategy that sets the target bean's attributes directly using the Reflection API (without going
+ * through the setters).
  */
 public class FieldAttributeAccessStrategy implements AttributeAccessStrategy {
 
@@ -17,7 +18,7 @@ public class FieldAttributeAccessStrategy implements AttributeAccessStrategy {
     }
 
     public Class getPropertyType(Object target, String property) throws Exception {
-        if (target == null) {
+        if(target == null) {
             return null;
         }
 
@@ -33,15 +34,17 @@ public class FieldAttributeAccessStrategy implements AttributeAccessStrategy {
         try {
             field.setAccessible(true);
             field.set(target, value);
-        } finally {
+        }
+        finally {
             field.setAccessible(wasAccessible);
         }
     }
 
-    private Field getFieldFromClass(Class<?> clazz, String fieldName) {
+    protected Field getFieldFromClass(Class<?> clazz, String fieldName) {
         try {
             return clazz.getDeclaredField(fieldName);
-        } catch (NoSuchFieldException e) {
+        }
+        catch (NoSuchFieldException e) {
             return null;
         }
     }
