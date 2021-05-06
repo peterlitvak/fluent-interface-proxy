@@ -1,5 +1,9 @@
 package com.fluentinterface;
 
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+
 import com.fluentinterface.builder.Builder;
 import com.fluentinterface.proxy.AttributeAccessStrategy;
 import com.fluentinterface.proxy.BuilderDelegate;
@@ -7,10 +11,6 @@ import com.fluentinterface.proxy.BuilderProxy;
 import com.fluentinterface.proxy.impl.FieldAttributeAccessStrategy;
 import com.fluentinterface.proxy.impl.SetterAttributeAccessStrategy;
 import com.fluentinterface.utils.GenericsUtils;
-
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 
 public class ReflectionBuilder<T> {
 

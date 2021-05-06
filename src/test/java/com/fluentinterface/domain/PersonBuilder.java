@@ -1,9 +1,9 @@
 package com.fluentinterface.domain;
 
-import com.fluentinterface.builder.Builder;
-
 import java.util.Collection;
 import java.util.Queue;
+
+import com.fluentinterface.builder.Builder;
 
 public interface PersonBuilder extends Builder<Person> {
 

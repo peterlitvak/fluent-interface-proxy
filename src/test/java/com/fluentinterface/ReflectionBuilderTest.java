@@ -1,14 +1,14 @@
 package com.fluentinterface;
 
+import java.io.Serializable;
+
 import com.fluentinterface.builder.Builder;
 import com.fluentinterface.domain.Person;
 import org.junit.Test;
 
-import java.io.Serializable;
-
 import static com.fluentinterface.ReflectionBuilder.implementationFor;
 import static org.hamcrest.Matchers.typeCompatibleWith;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 
 public class ReflectionBuilderTest {
 

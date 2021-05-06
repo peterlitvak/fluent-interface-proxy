@@ -1,5 +1,7 @@
 package com.fluentinterface;
 
+import java.util.ArrayDeque;
+
 import com.fluentinterface.domain.Person;
 import com.fluentinterface.domain.PersonBuilder;
 import com.fluentinterface.proxy.AttributeAccessStrategy;
@@ -9,8 +11,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-
-import java.util.ArrayDeque;
 
 import static com.fluentinterface.ReflectionBuilder.implementationFor;
 import static java.util.Arrays.asList;
